@@ -1,4 +1,18 @@
 package com.Pluralsight.NorthWindTradersAPI.dao;
 
-public class CategoryDAO {
+import com.Pluralsight.NorthWindTradersAPI.models.Category;
+
+import java.util.List;
+
+public interface CategoryDAO {
+
+    List<Category> getAllCategories();
+    Category getCategoryByID(int categoryID);
+    Category getCategoryByName(String categoryName);
+    void addCategory(Category category);
+
+
+
+
+
 }
