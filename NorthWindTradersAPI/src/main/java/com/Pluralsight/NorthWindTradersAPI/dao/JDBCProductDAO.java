@@ -3,6 +3,8 @@ package com.Pluralsight.NorthWindTradersAPI.dao;
 
 import com.Pluralsight.NorthWindTradersAPI.models.Product;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,8 +22,11 @@ public class JDBCProductDAO  implements ProductDAO{
     private DatabaseConfig databaseConfig;
     private BasicDataSource basicDataSource;
 
+    private Logger logger = LoggerFactory.getLogger(JDBCProductDAO.class);
+
     @Autowired
     public JDBCProductDAO(DatabaseConfig databaseConfig) {
+
         this.databaseConfig = databaseConfig;
         this.basicDataSource = new BasicDataSource();
         basicDataSource.setUrl(databaseConfig.getUrl());
@@ -31,6 +36,8 @@ public class JDBCProductDAO  implements ProductDAO{
 
     @Override
     public List<Product> getAllProducts(){
+
+        logger.info("All Products");
 
         ArrayList<Product> products = new ArrayList<>();
 
