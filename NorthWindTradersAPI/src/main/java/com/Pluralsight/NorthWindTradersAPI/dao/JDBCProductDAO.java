@@ -16,11 +16,17 @@ import java.util.List;
 @Component
 public class JDBCProductDAO  implements ProductDAO{
 
+
     private DatabaseConfig databaseConfig;
+    private BasicDataSource basicDataSource;
 
     @Autowired
     public JDBCProductDAO(DatabaseConfig databaseConfig) {
         this.databaseConfig = databaseConfig;
+        this.basicDataSource = new BasicDataSource();
+        basicDataSource.setUrl(databaseConfig.getUrl());
+        basicDataSource.setUsername(databaseConfig.getUsername());
+        basicDataSource.setPassword(databaseConfig.getPassword());
     }
 
     @Override
@@ -40,10 +46,6 @@ public class JDBCProductDAO  implements ProductDAO{
                 
                 """;
 
-        BasicDataSource basicDataSource = new BasicDataSource();
-        basicDataSource.setUrl(databaseConfig.getUrl());
-        basicDataSource.setUsername(databaseConfig.getUsername());
-        basicDataSource.setPassword(databaseConfig.getPassword());
 
         try(
             Connection connection = basicDataSource.getConnection();
@@ -87,11 +89,6 @@ public class JDBCProductDAO  implements ProductDAO{
 
 
 
-        BasicDataSource basicDataSource = new BasicDataSource();
-        basicDataSource.setUrl(databaseConfig.getUrl());
-        basicDataSource.setUsername(databaseConfig.getUsername());
-        databaseConfig.setPassword(databaseConfig.getPassword());
-
         try(
                 Connection connection = basicDataSource.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -125,8 +122,42 @@ public class JDBCProductDAO  implements ProductDAO{
     }
 
     @Override
-    public void addProduct(Product product) {
+    public Product addProduct(Product product) {
 
+        String query = """
+                Insert into products
+                (ProductName,SupplierID,CategoryID,UnitPrice)
+                values
+                (?, 1 , ?, ?)
+                """;
+        try(
+                Connection connection = basicDataSource.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)
+
+                ){
+            preparedStatement.setString(1,product.getProductName());
+            preparedStatement.setInt(2,product.getCategoryID());
+            preparedStatement.setDouble(3,product.getPrice());
+
+            int rows = preparedStatement.executeUpdate();
+
+            try(ResultSet keys = preparedStatement.getGeneratedKeys()){
+                while (keys.next()){
+                    Product result = new Product();
+                    result.setProductID(keys.getInt(1));
+                    result.setProductName(product.getProductName());
+                    result.setCategoryID(product.getCategoryID());
+                    result.setPrice(product.getPrice());
+                    return result;
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+        return null;
     }
 
 

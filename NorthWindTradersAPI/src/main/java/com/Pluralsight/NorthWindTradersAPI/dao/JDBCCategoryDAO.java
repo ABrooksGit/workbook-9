@@ -16,11 +16,17 @@ import java.util.List;
 public class JDBCCategoryDAO implements CategoryDAO {
 
     private DatabaseConfig databaseConfig;
+    private BasicDataSource basicDataSource;
 
 
     @Autowired
     public JDBCCategoryDAO(DatabaseConfig databaseConfig) {
         this.databaseConfig = databaseConfig;
+        this.basicDataSource = new BasicDataSource();
+        basicDataSource.setUrl(databaseConfig.getUrl());
+        basicDataSource.setUsername(databaseConfig.getUsername());
+        basicDataSource.setPassword(databaseConfig.getPassword());
+
     }
 
 
@@ -37,10 +43,6 @@ public class JDBCCategoryDAO implements CategoryDAO {
 
                 """;
 
-        BasicDataSource basicDataSource = new BasicDataSource();
-        basicDataSource.setUrl(databaseConfig.getUrl());
-        basicDataSource.setUsername(databaseConfig.getUsername());
-        basicDataSource.setPassword(databaseConfig.getPassword());
 
         try(Connection connection = basicDataSource.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -80,10 +82,7 @@ public class JDBCCategoryDAO implements CategoryDAO {
                 
                 """;
 
-        BasicDataSource basicDataSource = new BasicDataSource();
-        basicDataSource.setUrl(databaseConfig.getUrl());
-        basicDataSource.setUsername(databaseConfig.getUsername());
-        basicDataSource.setPassword(databaseConfig.getPassword());
+
 
         try(Connection connection = basicDataSource.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -127,10 +126,6 @@ public class JDBCCategoryDAO implements CategoryDAO {
                 
                 """;
 
-        BasicDataSource basicDataSource = new BasicDataSource();
-        basicDataSource.setUrl(databaseConfig.getUrl());
-        basicDataSource.setUsername(databaseConfig.getUsername());
-        basicDataSource.setPassword(databaseConfig.getPassword());
 
         try(Connection connection = basicDataSource.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(query)
@@ -156,8 +151,49 @@ public class JDBCCategoryDAO implements CategoryDAO {
         return null;
     }
 
+
     @Override
-    public void addCategory(Category category) {
+    public Category addCategory(Category category) {
+
+        String query = """
+                Insert into Categories
+                (CategoryID, CategoryName)
+                values
+                (?,?)
+                
+                
+                
+                """;
+
+        try(Connection connection = basicDataSource.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)
+        ){
+            preparedStatement.setInt(1, category.getCategoryID());
+            preparedStatement.setString(2, category.getCategoryName());
+
+            int rows = preparedStatement.executeUpdate();
+
+            try(ResultSet keys = preparedStatement.getGeneratedKeys()){
+                while (keys.next()){
+                    Category categoryResult = new Category();
+                    categoryResult.setCategoryID(keys.getInt(1));
+                    categoryResult.setCategoryName(category.getCategoryName());
+                    return categoryResult;
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return  null;
+
+
+
+
+
+
+
 
     }
 }
